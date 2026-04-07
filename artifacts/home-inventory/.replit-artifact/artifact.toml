@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "Home Inventory"
+title = "SpaceZen"
 version = "1.0.0"
 id = "artifacts/home-inventory"
 router = "path"
