@@ -17,6 +17,5 @@ export interface CreateItemBody {
   description?: string | null;
   tags?: string[];
   customFields?: CreateItemBodyCustomFields;
-  createdBy: string;
   isPublic?: boolean;
 }

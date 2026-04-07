@@ -157,3 +157,8 @@ overrides:
   # drizzle-kit uses esbuild internally on an older version that's vulnerable, this overrides it
   "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0"
   esbuild: "0.27.3"
+  # Allow @clerk/react to use React 19.1.0 (workspace-pinned version)
+  "@clerk/react>react": "19.1.0"
+  "@clerk/react>react-dom": "19.1.0"
+  "@clerk/shared>react": "19.1.0"
+  "@clerk/shared>react-dom": "19.1.0"

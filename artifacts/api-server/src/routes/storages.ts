@@ -7,17 +7,19 @@ import {
   ListStoragesByHouseholdParams,
   ListStorageChildrenParams,
 } from "@workspace/api-zod";
+import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
-router.post("/v1/storages", async (req, res): Promise<void> => {
+router.post("/v1/storages", requireAuth, async (req, res): Promise<void> => {
+  const userId = (req as any).userId as string;
   const parsed = CreateStorageBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
 
-  const { householdId, parentId, name, createdBy, isPublic } = parsed.data;
+  const { householdId, parentId, name, isPublic } = parsed.data;
 
   let pathIds: number[] = [];
   let pathNames: string[] = [];
@@ -45,7 +47,7 @@ router.post("/v1/storages", async (req, res): Promise<void> => {
       name,
       pathIds,
       pathNames,
-      createdBy,
+      createdBy: userId,
       isPublic: isPublic ?? false,
       deleted: false,
     })
@@ -54,7 +56,7 @@ router.post("/v1/storages", async (req, res): Promise<void> => {
   res.status(201).json(storage);
 });
 
-router.get("/v1/storages/household/:householdId", async (req, res): Promise<void> => {
+router.get("/v1/storages/household/:householdId", requireAuth, async (req, res): Promise<void> => {
   const params = ListStoragesByHouseholdParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -68,7 +70,7 @@ router.get("/v1/storages/household/:householdId", async (req, res): Promise<void
   res.json(storages);
 });
 
-router.get("/v1/storages/:id/children", async (req, res): Promise<void> => {
+router.get("/v1/storages/:id/children", requireAuth, async (req, res): Promise<void> => {
   const params = ListStorageChildrenParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -82,7 +84,7 @@ router.get("/v1/storages/:id/children", async (req, res): Promise<void> => {
   res.json(children);
 });
 
-router.delete("/v1/storages/:id", async (req, res): Promise<void> => {
+router.delete("/v1/storages/:id", requireAuth, async (req, res): Promise<void> => {
   const params = DeleteStorageParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

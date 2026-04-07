@@ -38,7 +38,6 @@ export interface CreateStorageBody {
   /** @nullable */
   parentId?: number | null;
   name: string;
-  createdBy: string;
   isPublic?: boolean;
 }
 
@@ -76,7 +75,6 @@ export interface CreateItemBody {
   description?: string | null;
   tags?: string[];
   customFields?: CreateItemBodyCustomFields;
-  createdBy: string;
   isPublic?: boolean;
 }
 

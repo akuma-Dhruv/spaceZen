@@ -9,17 +9,19 @@ import {
   SearchItemsQueryParams,
 } from "@workspace/api-zod";
 import { sql } from "drizzle-orm";
+import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
-router.post("/v1/items", async (req, res): Promise<void> => {
+router.post("/v1/items", requireAuth, async (req, res): Promise<void> => {
+  const userId = (req as any).userId as string;
   const parsed = CreateItemBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
 
-  const { householdId, storageId, name, category, description, tags, customFields, createdBy, isPublic } = parsed.data;
+  const { householdId, storageId, name, category, description, tags, customFields, isPublic } = parsed.data;
 
   const [storage] = await db
     .select()
@@ -46,7 +48,7 @@ router.post("/v1/items", async (req, res): Promise<void> => {
       customFields: customFields ?? {},
       locationPathIds,
       locationPathNames,
-      createdBy,
+      createdBy: userId,
       isPublic: isPublic ?? false,
       deleted: false,
     })
@@ -55,7 +57,7 @@ router.post("/v1/items", async (req, res): Promise<void> => {
   res.status(201).json(item);
 });
 
-router.get("/v1/items/search", async (req, res): Promise<void> => {
+router.get("/v1/items/search", requireAuth, async (req, res): Promise<void> => {
   const query = SearchItemsQueryParams.safeParse(req.query);
   if (!query.success) {
     res.status(400).json({ error: query.error.message });
@@ -84,7 +86,7 @@ router.get("/v1/items/search", async (req, res): Promise<void> => {
   res.json(items);
 });
 
-router.get("/v1/items/household/:householdId", async (req, res): Promise<void> => {
+router.get("/v1/items/household/:householdId", requireAuth, async (req, res): Promise<void> => {
   const params = ListItemsByHouseholdParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -98,7 +100,7 @@ router.get("/v1/items/household/:householdId", async (req, res): Promise<void> =
   res.json(items);
 });
 
-router.get("/v1/items/storage/:storageId", async (req, res): Promise<void> => {
+router.get("/v1/items/storage/:storageId", requireAuth, async (req, res): Promise<void> => {
   const params = ListItemsByStorageParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -112,7 +114,7 @@ router.get("/v1/items/storage/:storageId", async (req, res): Promise<void> => {
   res.json(items);
 });
 
-router.delete("/v1/items/:id", async (req, res): Promise<void> => {
+router.delete("/v1/items/:id", requireAuth, async (req, res): Promise<void> => {
   const params = DeleteItemParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

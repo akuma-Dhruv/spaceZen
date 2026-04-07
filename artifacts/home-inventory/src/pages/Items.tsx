@@ -118,7 +118,7 @@ export default function Items() {
         description: newDescription || null,
         tags: tagsArray,
         customFields: customFieldsRecord,
-        createdBy: "user1"
+        
       }
     }, {
       onSuccess: () => {

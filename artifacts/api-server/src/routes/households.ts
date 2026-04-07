@@ -6,31 +6,45 @@ import {
   DeleteHouseholdParams,
   GetHouseholdStatsParams,
 } from "@workspace/api-zod";
+import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
-router.get("/v1/households", async (req, res): Promise<void> => {
-  const households = await db.select().from(householdsTable).orderBy(householdsTable.createdAt);
+router.get("/v1/households", requireAuth, async (req, res): Promise<void> => {
+  const userId = (req as any).userId as string;
+  const households = await db
+    .select()
+    .from(householdsTable)
+    .where(eq(householdsTable.userId, userId))
+    .orderBy(householdsTable.createdAt);
   res.json(households);
 });
 
-router.post("/v1/households", async (req, res): Promise<void> => {
+router.post("/v1/households", requireAuth, async (req, res): Promise<void> => {
+  const userId = (req as any).userId as string;
   const parsed = CreateHouseholdBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const [household] = await db.insert(householdsTable).values({ name: parsed.data.name }).returning();
+  const [household] = await db
+    .insert(householdsTable)
+    .values({ name: parsed.data.name, userId })
+    .returning();
   res.status(201).json(household);
 });
 
-router.delete("/v1/households/:id", async (req, res): Promise<void> => {
+router.delete("/v1/households/:id", requireAuth, async (req, res): Promise<void> => {
+  const userId = (req as any).userId as string;
   const params = DeleteHouseholdParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
     return;
   }
-  const [household] = await db.delete(householdsTable).where(eq(householdsTable.id, params.data.id)).returning();
+  const [household] = await db
+    .delete(householdsTable)
+    .where(and(eq(householdsTable.id, params.data.id), eq(householdsTable.userId, userId)))
+    .returning();
   if (!household) {
     res.status(404).json({ error: "Household not found" });
     return;
@@ -38,7 +52,7 @@ router.delete("/v1/households/:id", async (req, res): Promise<void> => {
   res.sendStatus(204);
 });
 
-router.get("/v1/stats/household/:householdId", async (req, res): Promise<void> => {
+router.get("/v1/stats/household/:householdId", requireAuth, async (req, res): Promise<void> => {
   const params = GetHouseholdStatsParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

@@ -121,7 +121,7 @@ export default function Storages() {
         householdId,
         name: newName,
         parentId: parent,
-        createdBy: "user1"
+        
       }
     }, {
       onSuccess: () => {

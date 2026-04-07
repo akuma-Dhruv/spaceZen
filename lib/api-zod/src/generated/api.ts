@@ -46,7 +46,6 @@ export const CreateStorageBody = zod.object({
   householdId: zod.number(),
   parentId: zod.number().nullish(),
   name: zod.string(),
-  createdBy: zod.string(),
   isPublic: zod.boolean().optional(),
 });
 
@@ -114,7 +113,6 @@ export const CreateItemBody = zod.object({
   description: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
   customFields: zod.record(zod.string(), zod.unknown()).optional(),
-  createdBy: zod.string(),
   isPublic: zod.boolean().optional(),
 });
 

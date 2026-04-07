@@ -370,14 +370,11 @@ components:
           type: ["integer", "null"]
         name:
           type: string
-        createdBy:
-          type: string
         isPublic:
           type: boolean
       required:
         - householdId
         - name
-        - createdBy
 
     Item:
       type: object
@@ -458,15 +455,12 @@ components:
         customFields:
           type: object
           additionalProperties: true
-        createdBy:
-          type: string
         isPublic:
           type: boolean
       required:
         - householdId
         - storageId
         - name
-        - createdBy
 
     HouseholdStats:
       type: object
