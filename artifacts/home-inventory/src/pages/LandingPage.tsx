@@ -8,7 +8,7 @@ export default function LandingPage() {
       <header className="border-b border-border px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Package className="w-6 h-6 text-primary" />
-          <span className="font-bold text-lg tracking-tight">Inventory</span>
+          <span className="font-bold text-lg tracking-tight">SpaceZen</span>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/sign-in">

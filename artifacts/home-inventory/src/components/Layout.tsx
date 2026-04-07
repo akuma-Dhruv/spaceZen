@@ -54,7 +54,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <aside className="w-64 border-r border-border bg-card flex flex-col">
         <div className="h-16 flex items-center px-6 border-b border-border">
           <Package className="w-6 h-6 text-primary mr-3" />
-          <h1 className="font-bold text-lg tracking-tight">Inventory</h1>
+          <h1 className="font-bold text-lg tracking-tight">SpaceZen</h1>
         </div>
 
         <div className="p-4 border-b border-border">
