@@ -11,7 +11,7 @@ import {
   Item
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Box, Trash2, Filter, Info, AlertCircle, X } from "lucide-react";
+import { Plus, Search, Box, Trash2, Filter, Info, AlertCircle, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
