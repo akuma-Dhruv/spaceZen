@@ -3,13 +3,20 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Home Inventory Management API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: households
+    description: Household management
+  - name: storages
+    description: Storage space management
+  - name: items
+    description: Item management
+
 paths:
   /healthz:
     get:
@@ -24,6 +31,263 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /v1/households:
+    get:
+      operationId: listHouseholds
+      tags: [households]
+      summary: List all households
+      responses:
+        "200":
+          description: List of households
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Household"
+    post:
+      operationId: createHousehold
+      tags: [households]
+      summary: Create a household
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHouseholdBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Household"
+        "400":
+          description: Bad request
+
+  /v1/households/{id}:
+    delete:
+      operationId: deleteHousehold
+      tags: [households]
+      summary: Delete a household
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /v1/storages:
+    post:
+      operationId: createStorage
+      tags: [storages]
+      summary: Create a storage space
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStorageBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Storage"
+        "400":
+          description: Bad request
+
+  /v1/storages/household/{householdId}:
+    get:
+      operationId: listStoragesByHousehold
+      tags: [storages]
+      summary: List all storages for a household
+      parameters:
+        - name: householdId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of storages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Storage"
+
+  /v1/storages/{id}/children:
+    get:
+      operationId: listStorageChildren
+      tags: [storages]
+      summary: List direct children of a storage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Children storages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Storage"
+
+  /v1/storages/{id}:
+    delete:
+      operationId: deleteStorage
+      tags: [storages]
+      summary: Soft-delete a storage space
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /v1/items:
+    post:
+      operationId: createItem
+      tags: [items]
+      summary: Create an item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateItemBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+        "400":
+          description: Bad request
+
+  /v1/items/household/{householdId}:
+    get:
+      operationId: listItemsByHousehold
+      tags: [items]
+      summary: List all items for a household
+      parameters:
+        - name: householdId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+
+  /v1/items/storage/{storageId}:
+    get:
+      operationId: listItemsByStorage
+      tags: [items]
+      summary: List all items in a storage
+      parameters:
+        - name: storageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+
+  /v1/items/search:
+    get:
+      operationId: searchItems
+      tags: [items]
+      summary: Search items by keyword within a household
+      parameters:
+        - name: householdId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Matching items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+
+  /v1/items/{id}:
+    delete:
+      operationId: deleteItem
+      tags: [items]
+      summary: Soft-delete an item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /v1/stats/household/{householdId}:
+    get:
+      operationId: getHouseholdStats
+      tags: [households]
+      summary: Get summary stats for a household
+      parameters:
+        - name: householdId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Household statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HouseholdStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +298,204 @@ components:
       required:
         - status
 
+    Household:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - createdAt
+
+    CreateHouseholdBody:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+
+    Storage:
+      type: object
+      properties:
+        id:
+          type: integer
+        householdId:
+          type: integer
+        parentId:
+          type: ["integer", "null"]
+        name:
+          type: string
+        pathIds:
+          type: array
+          items:
+            type: integer
+        pathNames:
+          type: array
+          items:
+            type: string
+        createdBy:
+          type: string
+        isPublic:
+          type: boolean
+        deleted:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - householdId
+        - parentId
+        - name
+        - pathIds
+        - pathNames
+        - createdBy
+        - isPublic
+        - deleted
+        - createdAt
+
+    CreateStorageBody:
+      type: object
+      properties:
+        householdId:
+          type: integer
+        parentId:
+          type: ["integer", "null"]
+        name:
+          type: string
+        createdBy:
+          type: string
+        isPublic:
+          type: boolean
+      required:
+        - householdId
+        - name
+        - createdBy
+
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+        householdId:
+          type: integer
+        storageId:
+          type: integer
+        name:
+          type: string
+        category:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        customFields:
+          type: object
+          additionalProperties: true
+        locationPathIds:
+          type: array
+          items:
+            type: integer
+        locationPathNames:
+          type: array
+          items:
+            type: string
+        createdBy:
+          type: string
+        isPublic:
+          type: boolean
+        deleted:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - householdId
+        - storageId
+        - name
+        - category
+        - description
+        - tags
+        - customFields
+        - locationPathIds
+        - locationPathNames
+        - createdBy
+        - isPublic
+        - deleted
+        - createdAt
+        - updatedAt
+
+    CreateItemBody:
+      type: object
+      properties:
+        householdId:
+          type: integer
+        storageId:
+          type: integer
+        name:
+          type: string
+        category:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        customFields:
+          type: object
+          additionalProperties: true
+        createdBy:
+          type: string
+        isPublic:
+          type: boolean
+      required:
+        - householdId
+        - storageId
+        - name
+        - createdBy
+
+    HouseholdStats:
+      type: object
+      properties:
+        totalStorages:
+          type: integer
+        totalItems:
+          type: integer
+        categoryCounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryCount"
+        recentItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+      required:
+        - totalStorages
+        - totalItems
+        - categoryCounts
+        - recentItems
+
+    CategoryCount:
+      type: object
+      properties:
+        category:
+          type: ["string", "null"]
+        count:
+          type: integer
+      required:
+        - category
+        - count
