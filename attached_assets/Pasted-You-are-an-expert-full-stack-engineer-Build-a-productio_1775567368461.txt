@@ -1,0 +1,285 @@
+You are an expert full-stack engineer. Build a production-grade **Home Inventory Management System** using modern best practices.
+
+---
+
+# 🧠 PROJECT OVERVIEW
+
+Build a **full-stack web application** that allows users to:
+
+* Organize their home into **hierarchical storage spaces** (rooms → cupboards → drawers → sections → etc.)
+* Store and manage **items inside those storage spaces**
+* Search and locate items quickly
+* Scale this system for use in **homes, hotels, Airbnbs, and warehouses**
+
+The system must be designed with **clean architecture, scalability, and extensibility in mind**.
+
+---
+
+# ⚙️ TECH STACK
+
+## Backend
+
+* Java 21
+* Spring Boot 3
+* Spring Web (REST APIs)
+* Spring Data MongoDB
+* MongoDB (NoSQL database)
+* Lombok
+* Gradle
+* Springdoc OpenAPI (Swagger)
+
+## Frontend
+
+* React 18
+* Vite
+* Plain CSS (clean modern UI)
+* Fetch API (no axios required)
+
+## Dev Tools
+
+* Docker (MongoDB container)
+* Spotless (code formatting)
+
+---
+
+# 🏗️ SYSTEM ARCHITECTURE
+
+Frontend (React) → REST API (Spring Boot) → MongoDB
+
+Follow layered architecture:
+
+* `api/` → controllers + DTOs
+* `service/` → business logic
+* `domain/` → core models
+* `repo/` → Mongo repositories
+* `config/` → configs
+
+---
+
+# 🧩 CORE FEATURES
+
+## 1. STORAGE HIERARCHY (CRITICAL)
+
+Users can create nested storage spaces with **infinite depth**.
+
+Example:
+Household → Bedroom → Cupboard → Drawer → Box
+
+Each storage must have:
+
+* id
+* name
+* householdId
+* parentId
+* pathIds (list of ancestor IDs)
+* pathNames (list of ancestor names)
+* createdBy
+* isPublic
+* deleted (soft delete)
+
+👉 Path arrays must be maintained automatically when creating storage.
+
+---
+
+## 2. ITEM MANAGEMENT
+
+Users can add items into any storage.
+
+Each item must have:
+
+* id
+* householdId
+* storageId
+* name
+* category
+* description
+* tags (list)
+* customFields (Map<String, Object>) ← dynamic metadata
+* locationPathIds
+* locationPathNames
+* createdBy
+* isPublic
+* createdAt
+* updatedAt
+* deleted
+
+👉 When item is created:
+
+* Automatically inherit storage path
+* Store full location path
+
+---
+
+## 3. SEARCH SYSTEM (IMPORTANT)
+
+Implement keyword-based search:
+
+MVP:
+
+* Search on frontend (filter list)
+
+Fields to search:
+
+* name
+* category
+* description
+* tags
+* customFields
+
+Future-ready:
+
+* Design backend to support search API later
+
+---
+
+## 4. STORAGE TREE UI
+
+Frontend must display storage as a **collapsible tree**:
+
+* Expand/collapse nodes
+* Select a storage
+* Highlight selected node
+
+---
+
+## 5. ITEM UI
+
+* Add item form
+* View items list
+* Filter items by selected storage
+* Delete item
+* Show item details in modal:
+
+  * name
+  * category
+  * full storage path
+  * tags
+  * custom fields
+
+---
+
+## 6. STORAGE UI
+
+* Add storage form
+* Select parent storage
+* Delete storage
+* Display hierarchy
+
+---
+
+## 7. MULTI-HOUSEHOLD SUPPORT
+
+System must support:
+
+* Multiple households
+* Each user can belong to multiple households
+
+For now:
+
+* Mock userId and householdId from frontend input
+
+---
+
+## 8. API DESIGN
+
+### Storage APIs
+
+* POST /api/v1/storages
+* GET /api/v1/storages/household/{householdId}
+* GET /api/v1/storages/{parentId}/children
+* DELETE /api/v1/storages/{id}
+
+### Item APIs
+
+* POST /api/v1/items
+* GET /api/v1/items/household/{householdId}
+* GET /api/v1/items/storage/{storageId}
+* DELETE /api/v1/items/{id}
+
+---
+
+## 9. DATABASE DESIGN (MongoDB)
+
+Collections:
+
+* users
+* households
+* storages
+* items
+
+Use flexible schema for `customFields`.
+
+---
+
+## 10. IMPORTANT DESIGN PRINCIPLES
+
+Follow:
+
+* SOLID principles
+* KISS (keep it simple)
+* YAGNI (no unnecessary complexity)
+
+---
+
+## 11. NON-FUNCTIONAL REQUIREMENTS
+
+* Clean, readable code
+* Proper folder structure
+* Use DTOs for API requests
+* Use validation annotations
+* Soft delete instead of hard delete
+* Error handling with proper responses
+
+---
+
+## 12. SWAGGER
+
+* Enable Swagger UI
+* Document all APIs
+* Use OpenAPI config
+
+---
+
+## 13. DOCKER
+
+Provide:
+
+* Docker command for MongoDB
+* Optional docker-compose setup
+
+---
+
+## 14. FRONTEND UX REQUIREMENTS
+
+* Clean modern UI
+* Dark theme
+* Responsive layout
+* Minimal but intuitive
+* Use modals for item details
+
+---
+
+## 15. BONUS (IF POSSIBLE)
+
+* Client-side caching
+* Loading states
+* Error handling UI
+* Clear buttons and forms
+
+---
+
+# 🚀 FINAL EXPECTATION
+
+Generate:
+
+1. Full backend code (Spring Boot)
+2. Full frontend code (React + Vite)
+3. MongoDB setup
+4. API integration
+5. Folder structure
+6. Instructions to run
+
+The system should be **runnable immediately after setup**.
+
+Do NOT generate a simplified demo.
+Build it like a **real scalable product foundation**.
