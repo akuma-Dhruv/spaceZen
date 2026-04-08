@@ -29,6 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload, imageServingUrl } from "@/components/ImageUpload";
+import { CategorySelect } from "@/components/CategorySelect";
 
 export default function Items() {
   const { householdId } = useHousehold();
@@ -266,8 +267,12 @@ export default function Items() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
-                    <Input id="category" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="e.g. Electronics" />
+                    <Label>Category</Label>
+                    <CategorySelect
+                      value={newCategory}
+                      onChange={setNewCategory}
+                      categories={categories}
+                    />
                   </div>
                   
                   <div className="space-y-2">
@@ -550,8 +555,12 @@ export default function Items() {
                       <Input id="edit-name" value={editName} onChange={(e) => setEditName(e.target.value)} required autoFocus />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="edit-category">Category</Label>
-                      <Input id="edit-category" value={editCategory} onChange={(e) => setEditCategory(e.target.value)} placeholder="e.g. Electronics" />
+                      <Label>Category</Label>
+                      <CategorySelect
+                        value={editCategory}
+                        onChange={setEditCategory}
+                        categories={categories}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="edit-tags">Tags (comma separated)</Label>
