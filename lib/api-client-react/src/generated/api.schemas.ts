@@ -99,6 +99,29 @@ export interface HouseholdStats {
   recentItems: Item[];
 }
 
+export interface UpdateStorageBody {
+  name?: string;
+  /** @nullable */
+  imageUrl?: string | null;
+  isPublic?: boolean;
+}
+
+export type UpdateItemBodyCustomFields = { [key: string]: unknown };
+
+export interface UpdateItemBody {
+  storageId?: number;
+  name?: string;
+  /** @nullable */
+  imageUrl?: string | null;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  description?: string | null;
+  tags?: string[];
+  customFields?: UpdateItemBodyCustomFields;
+  isPublic?: boolean;
+}
+
 export interface UploadUrlRequest {
   /** @minLength 1 */
   name: string;

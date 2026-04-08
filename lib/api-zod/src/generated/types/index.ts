@@ -18,5 +18,8 @@ export * from "./item";
 export * from "./itemCustomFields";
 export * from "./searchItemsParams";
 export * from "./storage";
+export * from "./updateItemBody";
+export * from "./updateItemBodyCustomFields";
+export * from "./updateStorageBody";
 export * from "./uploadUrlRequest";
 export * from "./uploadUrlResponse";

@@ -149,6 +149,31 @@ paths:
                   $ref: "#/components/schemas/Storage"
 
   /v1/storages/{id}:
+    patch:
+      operationId: updateStorage
+      tags: [storages]
+      summary: Rename / update a storage space
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStorageBody"
+      responses:
+        "200":
+          description: Updated storage
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Storage"
+        "404":
+          description: Not found
     delete:
       operationId: deleteStorage
       tags: [storages]
@@ -255,6 +280,31 @@ paths:
                   $ref: "#/components/schemas/Item"
 
   /v1/items/{id}:
+    patch:
+      operationId: updateItem
+      tags: [items]
+      summary: Update an item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateItemBody"
+      responses:
+        "200":
+          description: Updated item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+        "404":
+          description: Not found
     delete:
       operationId: deleteItem
       tags: [items]
@@ -544,6 +594,39 @@ components:
       required:
         - category
         - count
+
+    UpdateStorageBody:
+      type: object
+      properties:
+        name:
+          type: string
+        imageUrl:
+          type: ["string", "null"]
+        isPublic:
+          type: boolean
+
+    UpdateItemBody:
+      type: object
+      properties:
+        storageId:
+          type: integer
+        name:
+          type: string
+        imageUrl:
+          type: ["string", "null"]
+        category:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        customFields:
+          type: object
+          additionalProperties: true
+        isPublic:
+          type: boolean
 
     UploadUrlRequest:
       type: object

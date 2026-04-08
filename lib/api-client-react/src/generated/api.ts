@@ -26,6 +26,8 @@ import type {
   Item,
   SearchItemsParams,
   Storage,
+  UpdateItemBody,
+  UpdateStorageBody,
   UploadUrlRequest,
   UploadUrlResponse,
 } from "./api.schemas";
@@ -626,6 +628,93 @@ export function useListStorageChildren<
 }
 
 /**
+ * @summary Rename / update a storage space
+ */
+export const getUpdateStorageUrl = (id: number) => {
+  return `/api/v1/storages/${id}`;
+};
+
+export const updateStorage = async (
+  id: number,
+  updateStorageBody: UpdateStorageBody,
+  options?: RequestInit,
+): Promise<Storage> => {
+  return customFetch<Storage>(getUpdateStorageUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateStorageBody),
+  });
+};
+
+export const getUpdateStorageMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateStorage>>,
+    TError,
+    { id: number; data: BodyType<UpdateStorageBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateStorage>>,
+  TError,
+  { id: number; data: BodyType<UpdateStorageBody> },
+  TContext
+> => {
+  const mutationKey = ["updateStorage"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateStorage>>,
+    { id: number; data: BodyType<UpdateStorageBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateStorage(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateStorageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateStorage>>
+>;
+export type UpdateStorageMutationBody = BodyType<UpdateStorageBody>;
+export type UpdateStorageMutationError = ErrorType<void>;
+
+/**
+ * @summary Rename / update a storage space
+ */
+export const useUpdateStorage = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateStorage>>,
+    TError,
+    { id: number; data: BodyType<UpdateStorageBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateStorage>>,
+  TError,
+  { id: number; data: BodyType<UpdateStorageBody> },
+  TContext
+> => {
+  return useMutation(getUpdateStorageMutationOptions(options));
+};
+
+/**
  * @summary Soft-delete a storage space
  */
 export const getDeleteStorageUrl = (id: number) => {
@@ -1069,6 +1158,93 @@ export function useSearchItems<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Update an item
+ */
+export const getUpdateItemUrl = (id: number) => {
+  return `/api/v1/items/${id}`;
+};
+
+export const updateItem = async (
+  id: number,
+  updateItemBody: UpdateItemBody,
+  options?: RequestInit,
+): Promise<Item> => {
+  return customFetch<Item>(getUpdateItemUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateItemBody),
+  });
+};
+
+export const getUpdateItemMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateItem>>,
+    TError,
+    { id: number; data: BodyType<UpdateItemBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateItem>>,
+  TError,
+  { id: number; data: BodyType<UpdateItemBody> },
+  TContext
+> => {
+  const mutationKey = ["updateItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateItem>>,
+    { id: number; data: BodyType<UpdateItemBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateItem(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateItem>>
+>;
+export type UpdateItemMutationBody = BodyType<UpdateItemBody>;
+export type UpdateItemMutationError = ErrorType<void>;
+
+/**
+ * @summary Update an item
+ */
+export const useUpdateItem = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateItem>>,
+    TError,
+    { id: number; data: BodyType<UpdateItemBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateItem>>,
+  TError,
+  { id: number; data: BodyType<UpdateItemBody> },
+  TContext
+> => {
+  return useMutation(getUpdateItemMutationOptions(options));
+};
 
 /**
  * @summary Soft-delete an item

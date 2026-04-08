@@ -99,6 +99,33 @@ export const ListStorageChildrenResponse = zod.array(
 );
 
 /**
+ * @summary Rename / update a storage space
+ */
+export const UpdateStorageParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateStorageBody = zod.object({
+  name: zod.string().optional(),
+  imageUrl: zod.string().nullish(),
+  isPublic: zod.boolean().optional(),
+});
+
+export const UpdateStorageResponse = zod.object({
+  id: zod.number(),
+  householdId: zod.number(),
+  parentId: zod.number().nullable(),
+  name: zod.string(),
+  imageUrl: zod.string().nullable(),
+  pathIds: zod.array(zod.number()),
+  pathNames: zod.array(zod.string()),
+  createdBy: zod.string(),
+  isPublic: zod.boolean(),
+  deleted: zod.boolean(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
  * @summary Soft-delete a storage space
  */
 export const DeleteStorageParams = zod.object({
@@ -205,6 +232,43 @@ export const SearchItemsResponseItem = zod.object({
   updatedAt: zod.coerce.date(),
 });
 export const SearchItemsResponse = zod.array(SearchItemsResponseItem);
+
+/**
+ * @summary Update an item
+ */
+export const UpdateItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateItemBody = zod.object({
+  storageId: zod.number().optional(),
+  name: zod.string().optional(),
+  imageUrl: zod.string().nullish(),
+  category: zod.string().nullish(),
+  description: zod.string().nullish(),
+  tags: zod.array(zod.string()).optional(),
+  customFields: zod.record(zod.string(), zod.unknown()).optional(),
+  isPublic: zod.boolean().optional(),
+});
+
+export const UpdateItemResponse = zod.object({
+  id: zod.number(),
+  householdId: zod.number(),
+  storageId: zod.number(),
+  name: zod.string(),
+  imageUrl: zod.string().nullable(),
+  category: zod.string().nullable(),
+  description: zod.string().nullable(),
+  tags: zod.array(zod.string()),
+  customFields: zod.record(zod.string(), zod.unknown()),
+  locationPathIds: zod.array(zod.number()),
+  locationPathNames: zod.array(zod.string()),
+  createdBy: zod.string(),
+  isPublic: zod.boolean(),
+  deleted: zod.boolean(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
 
 /**
  * @summary Soft-delete an item

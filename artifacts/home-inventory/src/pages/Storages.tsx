@@ -4,12 +4,12 @@ import {
   useListStoragesByHousehold, 
   useCreateStorage, 
   useDeleteStorage,
+  useUpdateStorage,
   getListStoragesByHouseholdQueryKey,
   Storage
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { FolderPlus, Folder, ChevronRight, ChevronDown, Trash2, Plus, AlertCircle, Image } from "lucide-react";
-import { ImageUpload, imageServingUrl } from "@/components/ImageUpload";
+import { FolderPlus, Folder, ChevronRight, ChevronDown, Trash2, Plus, AlertCircle, Image, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ImageUpload, imageServingUrl } from "@/components/ImageUpload";
 
 interface StorageNode extends Storage {
   children: StorageNode[];
@@ -31,27 +32,26 @@ interface StorageNode extends Storage {
 function buildStorageTree(storages: Storage[]): StorageNode[] {
   const map = new Map<number, StorageNode>();
   const roots: StorageNode[] = [];
-
   storages.forEach(s => map.set(s.id, { ...s, children: [] }));
-
   storages.forEach(s => {
     if (s.parentId === null) {
       roots.push(map.get(s.id)!);
     } else {
       const parent = map.get(s.parentId);
-      if (parent) {
-        parent.children.push(map.get(s.id)!);
-      } else {
-        // Fallback if parent missing
-        roots.push(map.get(s.id)!);
-      }
+      if (parent) parent.children.push(map.get(s.id)!);
+      else roots.push(map.get(s.id)!);
     }
   });
-
   return roots;
 }
 
-function StorageTreeNode({ node, level = 0, onDelete }: { node: StorageNode, level?: number, onDelete: (id: number) => void }) {
+function StorageTreeNode({ 
+  node, level = 0, onDelete, onRename
+}: { 
+  node: StorageNode; level?: number; 
+  onDelete: (id: number) => void;
+  onRename: (storage: Storage) => void;
+}) {
   const [expanded, setExpanded] = useState(true);
   const hasChildren = node.children.length > 0;
 
@@ -61,7 +61,7 @@ function StorageTreeNode({ node, level = 0, onDelete }: { node: StorageNode, lev
         className="flex items-center group py-2 px-3 rounded-md hover:bg-muted/50 transition-colors"
         style={{ paddingLeft: `${level * 1.5 + 0.75}rem` }}
       >
-        <div className="w-6 flex items-center justify-center mr-1">
+        <div className="w-6 flex items-center justify-center mr-1 shrink-0">
           {hasChildren ? (
             <button onClick={() => setExpanded(!expanded)} className="p-1 hover:bg-muted rounded-sm text-muted-foreground hover:text-foreground">
               {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -73,13 +73,26 @@ function StorageTreeNode({ node, level = 0, onDelete }: { node: StorageNode, lev
         {node.imageUrl ? (
           <img src={imageServingUrl(node.imageUrl)} alt={node.name} className="w-6 h-6 rounded object-cover mr-2 shrink-0" />
         ) : (
-          <Folder className="w-4 h-4 text-primary mr-3" />
+          <Folder className="w-4 h-4 text-primary mr-3 shrink-0" />
         )}
-        <span className="flex-1 font-medium text-sm">{node.name}</span>
+        <span className="flex-1 font-medium text-sm truncate">{node.name}</span>
         
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => onDelete(node.id)}>
-            <Trash2 className="w-4 h-4" />
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+          <Button
+            variant="ghost" size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted"
+            onClick={(e) => { e.stopPropagation(); onRename(node); }}
+            title="Rename"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </Button>
+          <Button
+            variant="ghost" size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            onClick={(e) => { e.stopPropagation(); onDelete(node.id); }}
+            title="Delete"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>
       </div>
@@ -87,7 +100,7 @@ function StorageTreeNode({ node, level = 0, onDelete }: { node: StorageNode, lev
       {expanded && hasChildren && (
         <div className="w-full">
           {node.children.map(child => (
-            <StorageTreeNode key={child.id} node={child} level={level + 1} onDelete={onDelete} />
+            <StorageTreeNode key={child.id} node={child} level={level + 1} onDelete={onDelete} onRename={onRename} />
           ))}
         </div>
       )}
@@ -108,45 +121,55 @@ export default function Storages() {
 
   const createStorage = useCreateStorage();
   const deleteStorage = useDeleteStorage();
+  const updateStorage = useUpdateStorage();
 
+  // Add form state
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [parentId, setParentId] = useState<string>("none");
   const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
 
+  // Rename dialog state
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [renamingStorage, setRenamingStorage] = useState<Storage | null>(null);
+  const [renameName, setRenameName] = useState("");
+
   const tree = useMemo(() => storages ? buildStorageTree(storages) : [], [storages]);
+
+  const invalidate = () => {
+    if (householdId) queryClient.invalidateQueries({ queryKey: getListStoragesByHouseholdQueryKey(householdId) });
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!householdId || !newName.trim()) return;
-
     const parent = parentId !== "none" ? Number(parentId) : null;
-
     createStorage.mutate({
-      data: {
-        householdId,
-        name: newName,
-        parentId: parent,
-        imageUrl: newImageUrl,
-      }
+      data: { householdId, name: newName, parentId: parent, imageUrl: newImageUrl }
     }, {
-      onSuccess: () => {
-        setIsAddOpen(false);
-        setNewName("");
-        setParentId("none");
-        setNewImageUrl(null);
-        queryClient.invalidateQueries({ queryKey: getListStoragesByHouseholdQueryKey(householdId) });
-      }
+      onSuccess: () => { setIsAddOpen(false); setNewName(""); setParentId("none"); setNewImageUrl(null); invalidate(); }
     });
   };
 
   const handleDelete = (id: number) => {
-    if (!householdId || !confirm("Are you sure you want to delete this storage location? All items inside will be orphaned or deleted.")) return;
-    
-    deleteStorage.mutate({ id }, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListStoragesByHouseholdQueryKey(householdId) });
-      }
+    if (!householdId || !confirm("Delete this storage location?")) return;
+    deleteStorage.mutate({ id }, { onSuccess: () => invalidate() });
+  };
+
+  const openRename = (storage: Storage) => {
+    setRenamingStorage(storage);
+    setRenameName(storage.name);
+    setIsRenameOpen(true);
+  };
+
+  const handleRename = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!renamingStorage || !renameName.trim()) return;
+    updateStorage.mutate({
+      id: renamingStorage.id,
+      data: { name: renameName }
+    }, {
+      onSuccess: () => { setIsRenameOpen(false); setRenamingStorage(null); invalidate(); }
     });
   };
 
@@ -165,16 +188,16 @@ export default function Storages() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center justify-between">
+    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Storage Spaces</h1>
-          <p className="text-muted-foreground">Organize your home into rooms, shelves, and containers.</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-1">Storage Spaces</h1>
+          <p className="text-muted-foreground text-sm">Organize your home into rooms, shelves, and containers.</p>
         </div>
         
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button className="gap-2 shrink-0">
               <Plus className="w-4 h-4" />
               Add Storage
             </Button>
@@ -214,7 +237,7 @@ export default function Storages() {
                 <Label className="flex items-center gap-1"><Image className="w-4 h-4" /> Photo (Optional)</Label>
                 <ImageUpload value={newImageUrl} onChange={setNewImageUrl} />
               </div>
-              <DialogFooter className="pt-4">
+              <DialogFooter className="pt-2">
                 <Button type="submit" disabled={createStorage.isPending || !newName.trim()}>
                   {createStorage.isPending ? "Saving..." : "Save"}
                 </Button>
@@ -224,11 +247,11 @@ export default function Storages() {
         </Dialog>
       </div>
 
-      <div className="bg-card border border-border/50 rounded-lg p-6 shadow-sm">
+      <div className="bg-card border border-border/50 rounded-lg p-4 md:p-6 shadow-sm">
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className={`h-10 w-${i % 2 === 0 ? 'full' : '3/4'} rounded-md`} />
+              <Skeleton key={i} className="h-10 w-full rounded-md" />
             ))}
           </div>
         ) : tree.length === 0 ? (
@@ -243,11 +266,37 @@ export default function Storages() {
         ) : (
           <div className="space-y-1">
             {tree.map(node => (
-              <StorageTreeNode key={node.id} node={node} onDelete={handleDelete} />
+              <StorageTreeNode key={node.id} node={node} onDelete={handleDelete} onRename={openRename} />
             ))}
           </div>
         )}
       </div>
+
+      {/* Rename dialog */}
+      <Dialog open={isRenameOpen} onOpenChange={setIsRenameOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Storage Space</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleRename} className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="rename">New Name</Label>
+              <Input
+                id="rename"
+                value={renameName}
+                onChange={(e) => setRenameName(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" type="button" onClick={() => setIsRenameOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={updateStorage.isPending || !renameName.trim()}>
+                {updateStorage.isPending ? "Saving..." : "Rename"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

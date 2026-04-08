@@ -7,6 +7,7 @@ import {
   ListItemsByHouseholdParams,
   ListItemsByStorageParams,
   SearchItemsQueryParams,
+  UpdateItemBody,
 } from "@workspace/api-zod";
 import { sql } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
@@ -113,6 +114,48 @@ router.get("/v1/items/storage/:storageId", requireAuth, async (req, res): Promis
     .where(and(eq(itemsTable.storageId, params.data.storageId), eq(itemsTable.deleted, false)))
     .orderBy(itemsTable.createdAt);
   res.json(items);
+});
+
+router.patch("/v1/items/:id", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const body = UpdateItemBody.safeParse(req.body);
+  if (!body.success) { res.status(400).json({ error: "Invalid request" }); return; }
+
+  const updates: Record<string, any> = {};
+  if (body.data.name !== undefined) updates.name = body.data.name;
+  if (body.data.imageUrl !== undefined) updates.imageUrl = body.data.imageUrl;
+  if (body.data.category !== undefined) updates.category = body.data.category;
+  if (body.data.description !== undefined) updates.description = body.data.description;
+  if (body.data.tags !== undefined) updates.tags = body.data.tags;
+  if (body.data.customFields !== undefined) updates.customFields = body.data.customFields;
+  if (body.data.isPublic !== undefined) updates.isPublic = body.data.isPublic;
+  updates.updatedAt = new Date();
+
+  if (body.data.storageId !== undefined) {
+    const [storage] = await db
+      .select()
+      .from(storagesTable)
+      .where(and(eq(storagesTable.id, body.data.storageId), eq(storagesTable.deleted, false)));
+    if (!storage) {
+      res.status(400).json({ error: "Storage not found" });
+      return;
+    }
+    updates.storageId = body.data.storageId;
+    updates.locationPathIds = [...(storage.pathIds ?? []), storage.id];
+    updates.locationPathNames = [...(storage.pathNames ?? []), storage.name];
+  }
+
+  const [item] = await db
+    .update(itemsTable)
+    .set(updates)
+    .where(and(eq(itemsTable.id, id), eq(itemsTable.deleted, false)))
+    .returning();
+  if (!item) {
+    res.status(404).json({ error: "Item not found" });
+    return;
+  }
+  res.json(item);
 });
 
 router.delete("/v1/items/:id", requireAuth, async (req, res): Promise<void> => {

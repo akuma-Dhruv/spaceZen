@@ -6,6 +6,7 @@ import {
   DeleteStorageParams,
   ListStoragesByHouseholdParams,
   ListStorageChildrenParams,
+  UpdateStorageBody,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
 
@@ -83,6 +84,26 @@ router.get("/v1/storages/:id/children", requireAuth, async (req, res): Promise<v
     .where(and(eq(storagesTable.parentId, params.data.id), eq(storagesTable.deleted, false)))
     .orderBy(storagesTable.createdAt);
   res.json(children);
+});
+
+router.patch("/v1/storages/:id", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const body = UpdateStorageBody.safeParse(req.body);
+  if (!body.success) { res.status(400).json({ error: "Invalid request" }); return; }
+
+  const updates: Record<string, any> = {};
+  if (body.data.name !== undefined) updates.name = body.data.name;
+  if (body.data.imageUrl !== undefined) updates.imageUrl = body.data.imageUrl;
+  if (body.data.isPublic !== undefined) updates.isPublic = body.data.isPublic;
+
+  const [storage] = await db
+    .update(storagesTable)
+    .set(updates)
+    .where(and(eq(storagesTable.id, id), eq(storagesTable.deleted, false)))
+    .returning();
+  if (!storage) { res.status(404).json({ error: "Storage not found" }); return; }
+  res.json(storage);
 });
 
 router.delete("/v1/storages/:id", requireAuth, async (req, res): Promise<void> => {
