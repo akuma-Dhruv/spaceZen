@@ -7,6 +7,7 @@ export const itemsTable = pgTable("items", {
   householdId: integer("household_id").notNull(),
   storageId: integer("storage_id").notNull(),
   name: text("name").notNull(),
+  imageUrl: text("image_url"),
   category: text("category"),
   description: text("description"),
   tags: text("tags").array().notNull().default([]),

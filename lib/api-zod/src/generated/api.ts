@@ -46,6 +46,7 @@ export const CreateStorageBody = zod.object({
   householdId: zod.number(),
   parentId: zod.number().nullish(),
   name: zod.string(),
+  imageUrl: zod.string().nullish(),
   isPublic: zod.boolean().optional(),
 });
 
@@ -61,6 +62,7 @@ export const ListStoragesByHouseholdResponseItem = zod.object({
   householdId: zod.number(),
   parentId: zod.number().nullable(),
   name: zod.string(),
+  imageUrl: zod.string().nullable(),
   pathIds: zod.array(zod.number()),
   pathNames: zod.array(zod.string()),
   createdBy: zod.string(),
@@ -84,6 +86,7 @@ export const ListStorageChildrenResponseItem = zod.object({
   householdId: zod.number(),
   parentId: zod.number().nullable(),
   name: zod.string(),
+  imageUrl: zod.string().nullable(),
   pathIds: zod.array(zod.number()),
   pathNames: zod.array(zod.string()),
   createdBy: zod.string(),
@@ -109,6 +112,7 @@ export const CreateItemBody = zod.object({
   householdId: zod.number(),
   storageId: zod.number(),
   name: zod.string(),
+  imageUrl: zod.string().nullish(),
   category: zod.string().nullish(),
   description: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -128,6 +132,7 @@ export const ListItemsByHouseholdResponseItem = zod.object({
   householdId: zod.number(),
   storageId: zod.number(),
   name: zod.string(),
+  imageUrl: zod.string().nullable(),
   category: zod.string().nullable(),
   description: zod.string().nullable(),
   tags: zod.array(zod.string()),
@@ -156,6 +161,7 @@ export const ListItemsByStorageResponseItem = zod.object({
   householdId: zod.number(),
   storageId: zod.number(),
   name: zod.string(),
+  imageUrl: zod.string().nullable(),
   category: zod.string().nullable(),
   description: zod.string().nullable(),
   tags: zod.array(zod.string()),
@@ -185,6 +191,7 @@ export const SearchItemsResponseItem = zod.object({
   householdId: zod.number(),
   storageId: zod.number(),
   name: zod.string(),
+  imageUrl: zod.string().nullable(),
   category: zod.string().nullable(),
   description: zod.string().nullable(),
   tags: zod.array(zod.string()),
@@ -228,6 +235,7 @@ export const GetHouseholdStatsResponse = zod.object({
       householdId: zod.number(),
       storageId: zod.number(),
       name: zod.string(),
+      imageUrl: zod.string().nullable(),
       category: zod.string().nullable(),
       description: zod.string().nullable(),
       tags: zod.array(zod.string()),
@@ -241,4 +249,26 @@ export const GetHouseholdStatsResponse = zod.object({
       updatedAt: zod.coerce.date(),
     }),
   ),
+});
+
+/**
+ * @summary Request a presigned URL for file upload
+ */
+
+export const RequestUploadUrlBody = zod.object({
+  name: zod.string().min(1),
+  size: zod.number().min(1),
+  contentType: zod.string().min(1),
+});
+
+export const RequestUploadUrlResponse = zod.object({
+  uploadURL: zod.string().url(),
+  objectPath: zod.string(),
+});
+
+/**
+ * @summary Serve an uploaded object
+ */
+export const GetStorageObjectParams = zod.object({
+  objectPath: zod.coerce.string(),
 });

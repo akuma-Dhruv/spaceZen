@@ -12,6 +12,8 @@ export interface Storage {
   /** @nullable */
   parentId: number | null;
   name: string;
+  /** @nullable */
+  imageUrl: string | null;
   pathIds: number[];
   pathNames: string[];
   createdBy: string;

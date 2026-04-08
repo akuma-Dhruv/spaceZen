@@ -21,7 +21,7 @@ router.post("/v1/items", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  const { householdId, storageId, name, category, description, tags, customFields, isPublic } = parsed.data;
+  const { householdId, storageId, name, imageUrl, category, description, tags, customFields, isPublic } = parsed.data;
 
   const [storage] = await db
     .select()
@@ -42,6 +42,7 @@ router.post("/v1/items", requireAuth, async (req, res): Promise<void> => {
       householdId,
       storageId,
       name,
+      imageUrl: imageUrl ?? null,
       category: category ?? null,
       description: description ?? null,
       tags: tags ?? [],

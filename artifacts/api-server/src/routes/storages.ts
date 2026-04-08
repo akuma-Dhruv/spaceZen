@@ -19,7 +19,7 @@ router.post("/v1/storages", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
-  const { householdId, parentId, name, isPublic } = parsed.data;
+  const { householdId, parentId, name, isPublic, imageUrl } = parsed.data;
 
   let pathIds: number[] = [];
   let pathNames: string[] = [];
@@ -45,6 +45,7 @@ router.post("/v1/storages", requireAuth, async (req, res): Promise<void> => {
       householdId,
       parentId: parentId ?? null,
       name,
+      imageUrl: imageUrl ?? null,
       pathIds,
       pathNames,
       createdBy: userId,

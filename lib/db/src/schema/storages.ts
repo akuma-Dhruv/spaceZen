@@ -9,6 +9,7 @@ export const storagesTable = pgTable("storages", {
   name: text("name").notNull(),
   pathIds: integer("path_ids").array().notNull().default([]),
   pathNames: text("path_names").array().notNull().default([]),
+  imageUrl: text("image_url"),
   createdBy: text("created_by").notNull(),
   isPublic: boolean("is_public").notNull().default(false),
   deleted: boolean("deleted").notNull().default(false),

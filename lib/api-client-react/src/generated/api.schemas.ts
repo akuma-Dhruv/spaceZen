@@ -25,6 +25,8 @@ export interface Storage {
   /** @nullable */
   parentId: number | null;
   name: string;
+  /** @nullable */
+  imageUrl: string | null;
   pathIds: number[];
   pathNames: string[];
   createdBy: string;
@@ -38,6 +40,8 @@ export interface CreateStorageBody {
   /** @nullable */
   parentId?: number | null;
   name: string;
+  /** @nullable */
+  imageUrl?: string | null;
   isPublic?: boolean;
 }
 
@@ -48,6 +52,8 @@ export interface Item {
   householdId: number;
   storageId: number;
   name: string;
+  /** @nullable */
+  imageUrl: string | null;
   /** @nullable */
   category: string | null;
   /** @nullable */
@@ -70,6 +76,8 @@ export interface CreateItemBody {
   storageId: number;
   name: string;
   /** @nullable */
+  imageUrl?: string | null;
+  /** @nullable */
   category?: string | null;
   /** @nullable */
   description?: string | null;
@@ -89,6 +97,20 @@ export interface HouseholdStats {
   totalItems: number;
   categoryCounts: CategoryCount[];
   recentItems: Item[];
+}
+
+export interface UploadUrlRequest {
+  /** @minLength 1 */
+  name: string;
+  /** @minimum 1 */
+  size: number;
+  /** @minLength 1 */
+  contentType: string;
+}
+
+export interface UploadUrlResponse {
+  uploadURL: string;
+  objectPath: string;
 }
 
 export type SearchItemsParams = {

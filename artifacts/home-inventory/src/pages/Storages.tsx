@@ -8,7 +8,8 @@ import {
   Storage
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { FolderPlus, Folder, ChevronRight, ChevronDown, Trash2, Plus, AlertCircle } from "lucide-react";
+import { FolderPlus, Folder, ChevronRight, ChevronDown, Trash2, Plus, AlertCircle, Image } from "lucide-react";
+import { ImageUpload, imageServingUrl } from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,7 +70,11 @@ function StorageTreeNode({ node, level = 0, onDelete }: { node: StorageNode, lev
             <div className="w-4 h-4" />
           )}
         </div>
-        <Folder className="w-4 h-4 text-primary mr-3" />
+        {node.imageUrl ? (
+          <img src={imageServingUrl(node.imageUrl)} alt={node.name} className="w-6 h-6 rounded object-cover mr-2 shrink-0" />
+        ) : (
+          <Folder className="w-4 h-4 text-primary mr-3" />
+        )}
         <span className="flex-1 font-medium text-sm">{node.name}</span>
         
         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
@@ -107,6 +112,7 @@ export default function Storages() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [parentId, setParentId] = useState<string>("none");
+  const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
 
   const tree = useMemo(() => storages ? buildStorageTree(storages) : [], [storages]);
 
@@ -121,13 +127,14 @@ export default function Storages() {
         householdId,
         name: newName,
         parentId: parent,
-        
+        imageUrl: newImageUrl,
       }
     }, {
       onSuccess: () => {
         setIsAddOpen(false);
         setNewName("");
         setParentId("none");
+        setNewImageUrl(null);
         queryClient.invalidateQueries({ queryKey: getListStoragesByHouseholdQueryKey(householdId) });
       }
     });
@@ -197,11 +204,15 @@ export default function Storages() {
                     <SelectItem value="none">None (Root Level)</SelectItem>
                     {storages?.map(s => (
                       <SelectItem key={s.id} value={s.id.toString()}>
-                        {s.pathNames.length > 0 ? s.pathNames.join(" > ") : s.name}
+                        {[...s.pathNames, s.name].join(" > ")}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1"><Image className="w-4 h-4" /> Photo (Optional)</Label>
+                <ImageUpload value={newImageUrl} onChange={setNewImageUrl} />
               </div>
               <DialogFooter className="pt-4">
                 <Button type="submit" disabled={createStorage.isPending || !newName.trim()}>

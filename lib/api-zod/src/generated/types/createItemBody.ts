@@ -12,6 +12,8 @@ export interface CreateItemBody {
   storageId: number;
   name: string;
   /** @nullable */
+  imageUrl?: string | null;
+  /** @nullable */
   category?: string | null;
   /** @nullable */
   description?: string | null;

@@ -11,5 +11,7 @@ export interface CreateStorageBody {
   /** @nullable */
   parentId?: number | null;
   name: string;
+  /** @nullable */
+  imageUrl?: string | null;
   isPublic?: boolean;
 }

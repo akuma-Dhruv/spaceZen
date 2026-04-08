@@ -11,7 +11,8 @@ import {
   Item
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Box, Trash2, Filter, Info, AlertCircle, X, ChevronRight } from "lucide-react";
+import { Plus, Search, Box, Trash2, Filter, Info, AlertCircle, X, ChevronRight, Image } from "lucide-react";
+import { ImageUpload, imageServingUrl } from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -89,6 +90,7 @@ export default function Items() {
   const [newDescription, setNewDescription] = useState("");
   const [newTags, setNewTags] = useState("");
   const [newStorageId, setNewStorageId] = useState<string>("");
+  const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
   const [customFields, setCustomFields] = useState<Array<{key: string, value: string}>>([]);
 
   const [filterStorageId, setFilterStorageId] = useState<string>("all");
@@ -114,11 +116,11 @@ export default function Items() {
         householdId,
         storageId: Number(newStorageId),
         name: newName,
+        imageUrl: newImageUrl,
         category: newCategory || null,
         description: newDescription || null,
         tags: tagsArray,
         customFields: customFieldsRecord,
-        
       }
     }, {
       onSuccess: () => {
@@ -152,6 +154,7 @@ export default function Items() {
     setNewDescription("");
     setNewTags("");
     setNewStorageId("");
+    setNewImageUrl(null);
     setCustomFields([]);
   };
 
@@ -213,7 +216,7 @@ export default function Items() {
                       <SelectContent>
                         {storages?.map(s => (
                           <SelectItem key={s.id} value={s.id.toString()}>
-                            {s.pathNames.length > 0 ? s.pathNames.join(" > ") : s.name}
+                            {[...s.pathNames, s.name].join(" > ")}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -232,6 +235,10 @@ export default function Items() {
                 </div>
 
                 <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1"><Image className="w-4 h-4" /> Photo (Optional)</Label>
+                    <ImageUpload value={newImageUrl} onChange={setNewImageUrl} />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="description">Description</Label>
                     <Textarea id="description" value={newDescription} onChange={(e) => setNewDescription(e.target.value)} rows={3} />
@@ -303,7 +310,7 @@ export default function Items() {
               <SelectItem value="all">All Locations</SelectItem>
               {storages?.map(s => (
                 <SelectItem key={s.id} value={s.id.toString()}>
-                  {s.pathNames.length > 0 ? s.pathNames.join(" > ") : s.name}
+                  {[...s.pathNames, s.name].join(" > ")}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -337,8 +344,12 @@ export default function Items() {
                 onClick={() => openDetail(item)}
               >
                 <div className="flex items-center gap-4 flex-1 overflow-hidden">
-                  <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                    <Box className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center text-primary shrink-0 overflow-hidden">
+                    {item.imageUrl ? (
+                      <img src={imageServingUrl(item.imageUrl)} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Box className="w-5 h-5" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -385,6 +396,16 @@ export default function Items() {
               </DialogHeader>
               
               <div className="space-y-6 pt-4 pb-2">
+                {selectedItem.imageUrl && (
+                  <div className="rounded-lg overflow-hidden border border-border/50 aspect-video bg-muted">
+                    <img
+                      src={imageServingUrl(selectedItem.imageUrl)}
+                      alt={selectedItem.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
                 {selectedItem.description && (
                   <div className="text-sm bg-muted/30 p-4 rounded-lg border border-border/50">
                     <p className="font-medium mb-1 text-xs uppercase text-muted-foreground">Description</p>
