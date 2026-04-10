@@ -23,6 +23,12 @@ const queryClient = new QueryClient({
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+// In production, route Clerk requests through our own API proxy (/api/__clerk)
+// so Clerk works on .replit.app without needing subdomain DNS setup.
+// In development, leave undefined so Clerk uses its CDN directly.
+const clerkProxyUrl = import.meta.env.PROD
+  ? `${window.location.origin}/api/__clerk`
+  : undefined;
 
 if (!clerkPubKey) {
   throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY");
@@ -102,6 +108,7 @@ function AppRouter() {
   return (
     <ClerkProvider
       publishableKey={clerkPubKey}
+      proxyUrl={clerkProxyUrl}
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
