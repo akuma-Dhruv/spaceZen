@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, useAuth, useClerk } from "@clerk/react";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -22,7 +22,6 @@ const queryClient = new QueryClient({
 });
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 if (!clerkPubKey) {
@@ -33,6 +32,15 @@ function stripBase(path: string): string {
   return basePath && path.startsWith(basePath)
     ? path.slice(basePath.length) || "/"
     : path;
+}
+
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
+      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <p className="text-muted-foreground text-sm">Loading SpaceZen...</p>
+    </div>
+  );
 }
 
 function SignInPage() {
@@ -52,30 +60,20 @@ function SignUpPage() {
 }
 
 function HomeRedirect() {
-  return (
-    <>
-      <Show when="signed-in">
-        <Redirect to="/dashboard" />
-      </Show>
-      <Show when="signed-out">
-        <LandingPage />
-      </Show>
-    </>
-  );
+  const { isLoaded, isSignedIn } = useAuth();
+  if (!isLoaded) return <LoadingScreen />;
+  if (isSignedIn) return <Redirect to="/dashboard" />;
+  return <LandingPage />;
 }
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+  const { isLoaded, isSignedIn } = useAuth();
+  if (!isLoaded) return <LoadingScreen />;
+  if (!isSignedIn) return <Redirect to="/" />;
   return (
-    <>
-      <Show when="signed-in">
-        <Layout>
-          <Component />
-        </Layout>
-      </Show>
-      <Show when="signed-out">
-        <Redirect to="/" />
-      </Show>
-    </>
+    <Layout>
+      <Component />
+    </Layout>
   );
 }
 
