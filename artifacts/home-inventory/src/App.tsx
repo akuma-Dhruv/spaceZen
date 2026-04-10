@@ -104,7 +104,7 @@ function AppRouter() {
   return (
     <ClerkProvider
       publishableKey={clerkPubKey}
-      clerkJSVersion="5"
+      clerkJSVersion={import.meta.env.DEV ? "5" : undefined}
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
