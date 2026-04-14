@@ -1,6 +1,7 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Package, LayoutDashboard, Box, Menu, X, Plus, Home, LogOut } from "lucide-react";
+import { ChatBot } from "@/components/ChatBot";
 import { useHousehold } from "@/context/HouseholdContext";
 import { useListHouseholds, useCreateHousehold, getListHouseholdsQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -194,6 +195,7 @@ export function Layout({ children }: { children: ReactNode }) {
           {children}
         </div>
       </main>
+      <ChatBot />
     </div>
   );
 }
