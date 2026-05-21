@@ -1,0 +1,64 @@
+## Why I ran so many Docker commands
+
+I was troubleshooting the containerized backend startup. The app was failing only inside Docker, so I used Docker commands to:
+
+1. `docker compose build`
+   - Rebuild the service image after code/Dockerfile changes.
+2. `docker compose up -d`
+   - Start the app and database containers together.
+3. `docker compose ps` / `ps -a`
+   - Check whether the app container was actually running or had exited.
+4. `docker compose logs app --tail 50`
+   - Read the app container logs to see the exact runtime error.
+5. `docker run --rm spacezen-app ...`
+   - Inspect the built image directly to verify what files and modules exist inside the runtime container.
+
+So the repeated Docker commands were not random; they were part of the debug loop:
+- build image,
+- run container,
+- inspect status,
+- read error logs,
+- inspect filesystem.
+
+---
+
+## Why the `@google-cloud/storage` reference happened
+
+The app failed with:
+
+- `ERR_MODULE_NOT_FOUND: Cannot find package '@google-cloud/storage'`
+
+That means the runtime container did not contain the installed dependency that the API code needs.
+
+Why this happened:
+- The Dockerfile copies `apps/api/dist` and `apps/api/node_modules` from the builder stage.
+- But with pnpm workspaces, dependencies may not be laid out under `apps/api/node_modules` the way a plain npm install does.
+- In a pnpm workspace, many packages are hoisted into the workspace-level `node_modules`, or symlinked differently.
+- So `COPY --from=builder /workspace/apps/api/node_modules ./node_modules` may have omitted the actual installed `@google-cloud/storage` package.
+
+That’s why the app could build successfully but fail at runtime.
+
+---
+
+## What I inspected
+
+I checked several things:
+
+- `apps/api/Dockerfile`
+  - Confirmed the runtime stage only copied `apps/api/dist` and `apps/api/node_modules`.
+- `apps/api/package.json`
+  - Confirmed `@google-cloud/storage` is indeed a declared dependency.
+- `pnpm-workspace.yaml`
+  - Confirmed this is a workspace repo, not a single-package repo.
+- Runtime container filesystem
+  - Verified `/usr/src/app/node_modules` did not contain `@google-cloud` packages.
+- Builder image filesystem
+  - I intended to inspect where pnpm installed the package in the builder, to determine the correct `COPY` path.
+
+---
+
+## What that means
+
+Right now, the container build is incomplete for the API runtime dependencies. The app is missing `@google-cloud/storage` inside the final image, so startup fails before the server can run.
+
+Next step is to fix the Dockerfile so the correct pnpm workspace dependencies are included in the runtime image.
